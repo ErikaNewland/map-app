@@ -1,0 +1,31 @@
+{
+  "name": "map-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.16.2",
+    "d3-array": "^1.2.0",
+    "d3-brush": "^1.0.4",
+    "d3-dsv": "^1.0.7",
+    "d3-geo": "^1.6.4",
+    "d3-selection": "^1.1.0",
+    "d3-shape": "^1.2.0",
+    "d3-svg-legend": "^2.24.1",
+    "d3-transition": "^1.1.0",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-redux": "^5.0.6",
+    "react-scripts": "1.0.13",
+    "redux": "^3.7.2",
+    "redux-devtools-extension": "^2.13.2",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.2.0",
+    "topojson-client": "^3.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
