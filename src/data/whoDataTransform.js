@@ -13,7 +13,7 @@ const maternalDDTransformed = maternalDeathData.fact.map(data=> {
    })
   const m49Code = countryCodes[countryCodeIndex].M49Code
 
-  return Object.assign({}, data, {transformedValue: value, id: m49Code})
+  return Object.assign({}, data, {value: value, id: m49Code})
 })
 
 export default maternalDDTransformed

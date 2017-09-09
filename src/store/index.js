@@ -51,4 +51,3 @@ export default createStore(reducer, composeWithDevTools(applyMiddleware(thunk, c
 
 //data
 //selected year
-

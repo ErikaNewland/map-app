@@ -1,32 +1,63 @@
+//improvements to think about 
+////1.  refactor the projection so I don't have to have a function inside a function- https://github.com/d3/d3-selection#joining-data
+////2.  Get data from another source so I don't have to use feature to transform the map data before joining it to the other data
+
+
+//next up!
+////1.  how do you render the colors based on the data there
+/////////a.  how do I find a min and max of the display data value in the data in order to set the scale
+
 import React, { Component } from 'react';
 import { select, selectAll } from 'd3-selection'
-import {connect} from 'react-redux'
+import {scaleLinear} from 'd3-scale'
+import {interpolate, interpolateHclLong} from 'd3-interpolate'
+import { connect } from 'react-redux'
 import { feature } from 'topojson-client'
-import '../App.css';
 import countryCodes from '../data/countryCodes'
 
 import { geoMercator, geoPath } from 'd3-geo'
 
-class WorldMap extends Component {
+export default class WorldMap extends Component {
   constructor(props) {
     super(props)
     this.renderMap = this.renderMap.bind(this)
   }
 
-  renderMap() {
+  transformMapRenderData(mapRenderData) {
+    return feature(mapRenderData, mapRenderData.objects.countries).features
+  }
+
+  joinData(mapDisplayData, mapRenderData) {
+    const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
+    return mapRenderDataTransformed.map(renderDataCountry => {
+      const displayDataIndex = mapDisplayData.findIndex(displayDataCountry => {
+        return renderDataCountry.id === displayDataCountry.id
+      })
+      if (displayDataIndex !== -1) {
+        renderDataCountry.displayDataValue = mapDisplayData[displayDataIndex].value
+      } else {
+        renderDataCountry.displayDataValue = undefined
+      }
+      return renderDataCountry
+    })
+
+  }
+
+  renderMap(props) {
     const node = this.node
-    const mapData = feature(this.props.worldMapData, this.props.worldMapData.objects.countries).features
-    console.log(mapData)
+    const width = node.width.animVal.value
+    const height = node.height.animVal.value
+    const mapData = this.joinData(props.mapDisplayData, props.mapRenderData)
+    const colorScale = scaleLinear()
+      .domain([])
+      .range(["red", "violet"])
+      .interpolate(interpolateHclLong)
 
-    //next up- how to attach the who data for a particular year to the DOM element
-    ////1. add data from WHO to the data object getting passed using a for loop for a given year
-        //run data through a year filter first
 
-    ///then how do you get it to update as new data comes in (i.e. the year changes so you need to run data through the year filter again?  Or should react control the filter change?)
-
+  
     //for the sake of my tech talk, I could have mouseover that shows the number of deaths and the range and work on updating later- lots of examples of mouseovers in maps available via d3 controlling DOM elements
 
-    
+
     select(node)
       .append('g')
       .classed('countries', true)
@@ -39,8 +70,7 @@ class WorldMap extends Component {
       .classed('country', true)
       .attr("stroke", "black")
       .attr("fill", "white")
-      .attr("strokeWidth", 0.5)
-
+      .attr("strokeWidth", 0.75)
 
     selectAll('path')
       .each(function (d, i) {
@@ -48,65 +78,32 @@ class WorldMap extends Component {
         const projection = () => {
           return geoMercator()
             .scale(150)
-            .translate([1000 / 1.75, 825 / 2])
+            .translate([width / 2, height / 2])
         }
         const dAttr = () => {
           return geoPath().projection(projection())(d)
         }
-       
         select(this)
           .attr("d", dAttr())
-      
       })
-
-  }
-
-  filterMaternalDeathDataByYear(year) {
-    const maternalDeathData = this.props.maternalDeathData.fact
-    return maternalDeathData.filter(datapoint=>{
-      return Number(datapoint.dims.YEAR) === year
-    })
   }
 
 
-
-  // componentWillReceiveProps() {
-  //   console.log('new props?')
-  //   console.log('this.props', this.props)
-  //   if(this.props.worldMapData.objects) {
-  //     console.log('we are in the if statement')
-  //     this.renderMap()
-  //   }
-  // }
-
-  componentDidMount() {
-    setTimeout(()=>{
-      this.renderMap()
-    }, 500)
-    // console.log('mounting')
-    // if(this.props.worldMapData.objects) {
-    //   console.log("first time")
-    //   this.renderMap()
-    // }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.mapRenderData.objects && nextProps.mapDisplayData.length) {
+      this.renderMap(nextProps)
+    }
   }
+
 
 
   render() {
     return (
-      <svg ref={node => this.node = node} width={1000} height={600}>
+      <svg ref={node => this.node = node} width={this.props.width} height={this.props.height}>
       </svg>
     );
   }
 }
-
-const mapStateToProps=state=>{
-  return {
-    worldMapData: state.worldMapData,
-    maternalDeathData: state.maternalDeathData
-  }
-}
-
-export default connect(mapStateToProps)(WorldMap)
 
 
 

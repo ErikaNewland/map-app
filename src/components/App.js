@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import '../App.css';
 import { select, selectAll } from 'd3-selection'
 import {connect} from 'react-redux'
 import {settingWorldMapData, setMaternalDeathData} from '../store'
-import WorldMap from './WorldMap'
+import MapContainer from './MapContainer'
 import maternalDDTransformed from '../data/whoDataTransform'
 
 
@@ -17,7 +16,7 @@ class App extends Component {
   render() {
     console.log('app rerendering')
     return (
-      <WorldMap/>
+      <MapContainer/>
     )
   }
 
