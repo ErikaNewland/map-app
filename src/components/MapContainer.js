@@ -4,8 +4,25 @@ import { connect } from 'react-redux'
 
 
 class MapContainer extends Component  {
+
   
-  filterWHOData(whoData) {
+  // handleClick(whoData) {    
+  //   console.log("dom click")
+  //   let nextYear;
+  //   console.log(this.state)
+  //   if(this.state.currentYear==="1990") {
+  //     nextYear = "2000"
+  //     // this.setState({currentYear: "2000"})
+  //   }
+  //   else if (this.state.currentYear==="2000") {
+  //     nextYear = "2015"
+  //     // this.setState({currentYear: "2015"})
+  //   }
+  //   else {
+  //     nextYear = "1990"
+  //     // this.setState({currnetYear: "1990"})
+  //   }
+  filterData(whoData){    
     if(this.props.mapDisplayData.length) {
       return whoData.filter(dataPoint=>{
         return dataPoint.dims.YEAR === "2015"
@@ -18,9 +35,12 @@ class MapContainer extends Component  {
       <WorldMap 
         mapRenderData={this.props.mapRenderData} 
         mapDisplayData={
-          this.filterWHOData(this.props.mapDisplayData) || []
+          this.filterData(this.props.mapDisplayData)|| []
         } 
-        width={1000} height={500} />
+        width={1000} 
+        height={500} 
+        valueDetails = "Value"
+        onClick = {this.handleClick}/>
     )
   }
 }
