@@ -26,32 +26,34 @@ export default class WorldMap extends Component {
     this.renderMap = this.renderMap.bind(this)
   }
 
-  transformMapRenderData(mapRenderData) {
-    return feature(mapRenderData, mapRenderData.objects.countries).features
-  }
+  // transformMapRenderData(mapRenderData) {
+  //   return feature(mapRenderData, mapRenderData.objects.countries).features
+  // }
 
-  joinData(mapDisplayData, mapRenderData) {
-    const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
-    return mapRenderDataTransformed.map(renderDataCountry => {
-      const displayDataIndex = mapDisplayData.findIndex(displayDataCountry => {
-        return renderDataCountry.id === displayDataCountry.id
-      })
-      if (displayDataIndex !== -1) {
-        renderDataCountry.displayDataValue = mapDisplayData[displayDataIndex].value
-      } else {
-        renderDataCountry.displayDataValue = undefined
-      }
-      return renderDataCountry
-    })
-  }
+  // joinData(mapDisplayData, mapRenderData) {
+  //   const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
+  //   return mapRenderDataTransformed.map(renderDataCountry => {
+  //     const displayDataIndex = mapDisplayData.findIndex(displayDataCountry => {
+  //       return renderDataCountry.id === displayDataCountry.id
+  //     })
+  //     if (displayDataIndex !== -1) {
+  //       renderDataCountry.displayDataValue = mapDisplayData[displayDataIndex].value
+  //     } else {
+  //       renderDataCountry.displayDataValue = undefined
+  //     }
+  //     return renderDataCountry
+  //   })
+  // }
 
   renderMap(props) {
     console.log("props", props)
     const node = this.node
     const width = node.width.animVal.value
     const height = node.height.animVal.value
-    const mapData = this.joinData(props.mapDisplayData, props.mapRenderData)
-    const valueDetails = props.valueDetails  //props.mapDisplayData[index][valueDetails] provides Value
+    const mapData = props.mapData
+    console.log('map Data')
+    // const mapData = this.joinData(props.mapDisplayData, props.mapRenderData)
+    // const valueDetails = props.valueDetails  //props.mapDisplayData[index][valueDetails] provides Value
     const maxMapDisplayData = max(mapData, d=>{
      return d.displayDataValue
     })
@@ -67,7 +69,6 @@ export default class WorldMap extends Component {
 
 
   
-    //for the sake of my tech talk, I could have mouseover that shows the number of deaths and the range and work on updating later- lots of examples of mouseovers in maps available via d3 controlling DOM elements
 
 
     select(node)
@@ -99,25 +100,35 @@ export default class WorldMap extends Component {
             .attr("d", dAttr())
             .attr("fill", colorScale(d.displayDataValue))
           })
-        .merge(countries)
-          .each(function (d, i) {
-            select(this)
-              .attr("fill", colorScale(d.displayDataValue))
-            })  
+       
+        // .merge(countries)
+        //   .each(function (d, i) {
+        //     select(this)
+        //       .attr("fill", colorScale(d.displayDataValue))
+        //     })  
+      
+      //props.extractYear(node)
+      countries.exit()
+        .remove()
+            
   }
 
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.mapRenderData.objects && nextProps.mapDisplayData.length) {
+    if (nextProps.mapData.length) {
       this.renderMap(nextProps)
     }
+  }
+
+  shouldComponentUpdate() {
+    return false;
   }
 
 
 
   render() {
     return (
-      <svg ref={node => this.node = node} width={this.props.width} height={this.props.height} onClick = {this.props.onClick}>
+      <svg ref={node => this.node = node} width={this.props.width} height={this.props.height} onClick = {()=>this.props.onClick(undefined, this.node)}>  {/*here is my issue!- if I want to reuse the function with the onclick, and the function is getting called in component will recieve props in the container... is there a way to run the container function without component will recieve props?  If so, how do I access the same props so that it's always calling the same datasource?  without setting the local state with the data and always pulling from there?  Do I need to have filter data in this function?  This would be a decent use case if you are always going to be using the same types of data sources in your code, but if you aren't going to be....  */}
       </svg>
     );
   }
