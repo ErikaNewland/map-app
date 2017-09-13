@@ -13,24 +13,27 @@ class MapContainer extends Component {
     this.filterData = this.filterData.bind(this)
     this.joinData = this.joinData.bind(this)
     this.state = {
-      mapData: []
+      mapData: [],
+      currentYear: ""
     }
   }
 
+  currentYear(node) {
+    return select(node)
+      .select('g')
+      .select('path')
+      .data()[0].year
+  }
+
   filterData(data, node) {
-    let currentYear 
-    console.log('currentYear', currentYear)
+    let currentYear
     if (node) {
-     currentYear = select(node)
-        .select('g')
-        .select('path')
-        .data()[0].year
-    } 
+      currentYear = this.currentYear(node)
+    }
     let nextYear
-    if(currentYear === "1990") nextYear = "2000"
-    else if (currentYear === "2015") nextYear = "1990"
-    else nextYear  = "2015" 
-    console.log('nextYear', nextYear)    
+    if (currentYear === "2000") nextYear = "2015"
+    else if (currentYear === "1990") nextYear = "2000"
+    else nextYear = "1990"
     if (data) {
       return data.filter(dataPoint => {
         return dataPoint.dims.YEAR === nextYear
@@ -46,8 +49,9 @@ class MapContainer extends Component {
 
   //change these variable names
   joinData(props, node) {
-    const mapDisplayData = this.filterData(props.mapDisplayData, node)
-    const mapRenderData = props.mapRenderData
+    const dataToFilter = props ? props.mapDisplayData : this.props.mapDisplayData
+    const mapDisplayData = this.filterData(dataToFilter, node)
+    const mapRenderData = props ? props.mapRenderData : this.props.mapRenderData
 
     const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
     const mapData = mapRenderDataTransformed.map(renderDataCountry => {
@@ -65,23 +69,28 @@ class MapContainer extends Component {
     })
     this.setState({
       mapData: mapData
-    }) 
+    })
   }
 
   componentWillReceiveProps(nextProps) {
     this.joinData(nextProps)
- }
+  }
 
 
   render() {
+    const year = this.state.mapData.length ? this.state.mapData[0].year : ""
     return (
-      <WorldMap
-        mapData={this.state.mapData}
-        width={1000}
-        height={500}
-        valueDetails="Value"
-        onClick={this.joinData} 
+      <div>
+        <div>Maternal Mortality Rates: Relative Deaths per 100,000 Births</div>
+        <div> Year: <span>{year}</span> </div>
+        <WorldMap
+          mapData={this.state.mapData}
+          width={1000}
+          height={500}
+          valueDetails="Value"
+          onClick={this.joinData}
         />
+      </div>
     )
   }
 }

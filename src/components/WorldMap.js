@@ -17,6 +17,7 @@ import {max, min} from 'd3-array'
 import { connect } from 'react-redux'
 import { feature } from 'topojson-client'
 import countryCodes from '../data/countryCodes'
+import {transition} from 'd3-transition'
 
 import { geoMercator, geoPath } from 'd3-geo'
 
@@ -26,52 +27,22 @@ export default class WorldMap extends Component {
     this.renderMap = this.renderMap.bind(this)
   }
 
-  // transformMapRenderData(mapRenderData) {
-  //   return feature(mapRenderData, mapRenderData.objects.countries).features
-  // }
-
-  // joinData(mapDisplayData, mapRenderData) {
-  //   const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
-  //   return mapRenderDataTransformed.map(renderDataCountry => {
-  //     const displayDataIndex = mapDisplayData.findIndex(displayDataCountry => {
-  //       return renderDataCountry.id === displayDataCountry.id
-  //     })
-  //     if (displayDataIndex !== -1) {
-  //       renderDataCountry.displayDataValue = mapDisplayData[displayDataIndex].value
-  //     } else {
-  //       renderDataCountry.displayDataValue = undefined
-  //     }
-  //     return renderDataCountry
-  //   })
-  // }
-
   renderMap(props) {
-    console.log("props", props)
     const node = this.node
     const width = node.width.animVal.value
     const height = node.height.animVal.value
     const mapData = props.mapData
-    console.log('map Data')
-    // const mapData = this.joinData(props.mapDisplayData, props.mapRenderData)
-    // const valueDetails = props.valueDetails  //props.mapDisplayData[index][valueDetails] provides Value
     const maxMapDisplayData = max(mapData, d=>{
-     return d.displayDataValue
-    })
-    const minMapDisplayData = min(mapData, d=>{
-      if(d.displayDataValue) return d.displayDataValue
+      return d.displayDataValue
     })
     
     const colorScale = scaleLinear()
-      .domain([minMapDisplayData, maxMapDisplayData])
-      .range(["red", "violet"])
+      .domain([0, 2700])
+      .range(["violet", "red"])
       .interpolate(interpolateHclLong)
        colorScale.clamp(true)
 
-
-  
-
-
-    select(node)
+   select(node)
       .append('g')
       .classed('countries', true)
 
@@ -86,7 +57,6 @@ export default class WorldMap extends Component {
         .attr("fill", "white")
         .attr("strokeWidth", 0.75)
         .each(function (d, i) {
-          //where to put these first 3 funcitons so I it is better- also issues with "this" if I call the in here
         
           const projection = () => {
             return geoMercator()
@@ -100,14 +70,15 @@ export default class WorldMap extends Component {
             .attr("d", dAttr())
             .attr("fill", colorScale(d.displayDataValue))
           })
-       
-        // .merge(countries)
-        //   .each(function (d, i) {
-        //     select(this)
-        //       .attr("fill", colorScale(d.displayDataValue))
-        //     })  
-      
-      //props.extractYear(node)
+        .merge(countries)
+          .each(function (d, i) {
+            select(this)
+              .transition()
+              .delay(100)
+              .duration(1000)
+              .attr("fill", colorScale(d.displayDataValue))
+            })
+    
       countries.exit()
         .remove()
             
@@ -120,6 +91,7 @@ export default class WorldMap extends Component {
     }
   }
 
+
   shouldComponentUpdate() {
     return false;
   }
@@ -128,7 +100,7 @@ export default class WorldMap extends Component {
 
   render() {
     return (
-      <svg ref={node => this.node = node} width={this.props.width} height={this.props.height} onClick = {()=>this.props.onClick(undefined, this.node)}>  {/*here is my issue!- if I want to reuse the function with the onclick, and the function is getting called in component will recieve props in the container... is there a way to run the container function without component will recieve props?  If so, how do I access the same props so that it's always calling the same datasource?  without setting the local state with the data and always pulling from there?  Do I need to have filter data in this function?  This would be a decent use case if you are always going to be using the same types of data sources in your code, but if you aren't going to be....  */}
+      <svg ref={node => this.node = node} width={this.props.width} height={this.props.height} onClick = {()=>this.props.onClick(undefined, this.node)}>  
       </svg>
     );
   }
