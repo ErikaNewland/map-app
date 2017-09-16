@@ -75,7 +75,7 @@ class MapContainer extends Component {
       //return the geo data object to the mapData array
       return geoCountry
     })
-    //set the local state with the map data so we can render the map year
+    //set the local state with the map data 
     this.setState({
       mapData: mapData
     })

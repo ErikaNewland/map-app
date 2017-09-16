@@ -15,50 +15,50 @@ export default class WorldMap extends Component {
   }
 
   renderMap(props) {
+    //setting constants
     const node = this.node
     const width = node.width.animVal.value
     const height = node.height.animVal.value
     const mapData = props.mapData
-    //useful function for interplation scales- used once in a console log, remains as example
-    const maxMapDisplayData = max(mapData, d=>{
+    
+    //Creating constants for specific map functionality 
+    const maxMapDisplayData = max(mapData, d=>{  //useful function for interplation scales- used once in a console log, remains as example
       return d.displayDataValue
     })
-
-    const colorScale = scaleLinear()
+    const projection = () => {   //returns the projection constant for translating lat/long into x/y
+      return geoMercator()
+        .scale(150)
+        .translate([width / 2, height / 1.5])
+    }
+    const colorScale = scaleLinear()  //returns the function that translates WHO data values into a corresponding color
       .domain([0, 2700])
       .range(["violet", "red"])
       .interpolate(interpolateHclLong)
        colorScale.clamp(true)
 
-   select(node)
+   //append g element to the SVG node
+   select(node)  
       .append('g')
       .classed('countries', true)
 
-    const countries = select('g')
+    //Append the map data to the DOM
+    const countries = select('g') 
       .selectAll('path')
       .data(mapData)
     
+    //Begin enter pattern
     countries.enter()
-      .append('path')
-        .classed('country', true)
-        .attr("stroke", "black")
-        .attr("fill", "white")
-        .attr("strokeWidth", 0.75)
-        .each(function (d, i) {
-        
-          const projection = () => {
-            return geoMercator()
-              .scale(150)
-              .translate([width / 2, height / 1.5])
-          }
-          const dAttr = (d) => {
-            return geoPath().projection(projection())(d)
-          }
-          select(this)
-            .attr("d", dAttr())
-            .attr("fill", colorScale(d.displayDataValue))
+      .append('path')  //append 'path' element for each data object
+        .classed('country', true)  //set class
+        .attr("stroke", "black") //set stroke color
+        .attr("strokeWidth", 0.75) //set stroke width
+        .each(function (d, i) { //for each path appended
+          select(this) //select the path element
+            .attr("d", geoPath().projection(projection())(d)) //set the "d" attribute (the line path) based on the projection and the data
+            .attr("fill", colorScale(d.displayDataValue)) //set the fill color of each country according to the data value
           })
-        .merge(countries)
+         //begin update pattern 
+        .merge(countries) //merge in data from next year and perform same functionality
           .each(function (d, i) {
             select(this)
               .transition()
@@ -66,13 +66,14 @@ export default class WorldMap extends Component {
               .duration(1000)
               .attr("fill", colorScale(d.displayDataValue))
             })
-    
+      
+      //remove countires for which data does not exist (if the data source changes)
       countries.exit()
         .remove()
             
   }
 
-  
+  //run renderMap each time new props come in-d3 will determine whether to use enter/update/exit
   componentWillReceiveProps(nextProps) {
     if (nextProps.mapData.length) {
       this.renderMap(nextProps)
@@ -84,8 +85,8 @@ export default class WorldMap extends Component {
     return false;
   }
 
-
-
+  //rendering the empty svg container is the only aspect React is responsible for
+  //ref gives the renderMap function a reference to the DOM element (rather than the virtual DOM element) for d3 to manipulate directly
   render() {
     return (
       <svg ref={node => this.node = node} width={this.props.width} height={this.props.height} onClick = {()=>this.props.onClick(undefined, this.node)}>  
@@ -93,6 +94,3 @@ export default class WorldMap extends Component {
     );
   }
 }
-
-
-
