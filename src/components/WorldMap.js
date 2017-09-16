@@ -1,24 +1,11 @@
-//improvements to think about 
-////1.  refactor the projection so I don't have to have a function inside a function- https://github.com/d3/d3-selection#joining-data
-////2.  Get data from another source so I don't have to use feature to transform the map data before joining it to the other data
-////3.  send id and value in as a prop???
-////different way to highlight
-
-
-//next up!
-////1.  create a click function to update the data coming in and to filter it before the click occurs so that I can render the transition completely in this page
-////2.  Extrac the functionality to the container page
-
 import React, { Component } from 'react';
 import { select, selectAll } from 'd3-selection'
 import {scaleLinear} from 'd3-scale'
-import {interpolate, interpolateHcl, interpolateHclLong, interpolateRgb, interpolateHsl, interpolateLab, interpolateCubehelix, interpolateCubehelixLong} from 'd3-interpolate'
+import {interpolateHclLong} from 'd3-interpolate'
 import {max, min} from 'd3-array'
 import { connect } from 'react-redux'
-import { feature } from 'topojson-client'
 import countryCodes from '../data/countryCodes'
 import {transition} from 'd3-transition'
-
 import { geoMercator, geoPath } from 'd3-geo'
 
 export default class WorldMap extends Component {
@@ -32,10 +19,11 @@ export default class WorldMap extends Component {
     const width = node.width.animVal.value
     const height = node.height.animVal.value
     const mapData = props.mapData
+    //useful function for interplation scales- used once in a console log, remains as example
     const maxMapDisplayData = max(mapData, d=>{
       return d.displayDataValue
     })
-    
+
     const colorScale = scaleLinear()
       .domain([0, 2700])
       .range(["violet", "red"])
@@ -63,7 +51,7 @@ export default class WorldMap extends Component {
               .scale(150)
               .translate([width / 2, height / 1.5])
           }
-          const dAttr = () => {
+          const dAttr = (d) => {
             return geoPath().projection(projection())(d)
           }
           select(this)
@@ -84,14 +72,14 @@ export default class WorldMap extends Component {
             
   }
 
-
+  
   componentWillReceiveProps(nextProps) {
     if (nextProps.mapData.length) {
       this.renderMap(nextProps)
     }
   }
 
-
+  //prevents react from re-rendering the component when new props come in, allows the d3 to take control through the renderMap function, run via componentWillReceiveProps
   shouldComponentUpdate() {
     return false;
   }

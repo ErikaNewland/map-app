@@ -10,6 +10,7 @@ class App extends Component {
   
   componentDidMount() {
     this.props.settingWorldMapData()
+    //Importing maternal death data from a local file
     this.props.setMaternalDeathData(maternalDDTransformed)
   }
 

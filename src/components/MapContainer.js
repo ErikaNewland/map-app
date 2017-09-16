@@ -18,6 +18,7 @@ class MapContainer extends Component {
     }
   }
 
+  //determine the WHO data year currently displayed on map
   currentYear(node) {
     return select(node)
       .select('g')
@@ -25,9 +26,10 @@ class MapContainer extends Component {
       .data()[0].year
   }
 
+  //filter the WHO data by by year
   filterData(data, node) {
     let currentYear
-    if (node) {
+    if (node) {  //a node exists if the data is updating via a click on the map
       currentYear = this.currentYear(node)
     }
     let nextYear
@@ -36,42 +38,50 @@ class MapContainer extends Component {
     else nextYear = "1990"
     if (data) {
       return data.filter(dataPoint => {
-        return dataPoint.dims.YEAR === nextYear
+        return dataPoint.dims.YEAR === nextYear  //year data stored in dims object on the data object for each country
       })
     }
   }
 
-  //trt to get rid of this function
-  transformMapRenderData(mapRenderData) {
-    if (mapRenderData && mapRenderData.objects) return feature(mapRenderData, mapRenderData.objects.countries).features
+  //uses topojson-client library method 'feature' to transform topo-json map data into geo-json map data
+  //function is in container becaues it will not be required for map data already in geo-json format
+  transformGeoData(geoData) {  
+    if (geoData && geoData.objects) return feature(geoData, geoData.objects.countries).features
     else return []
   }
 
-  //change these variable names
+  //join geographic and WHO orgnaization data into single structure to append to DOM 
   joinData(props, node) {
-    const dataToFilter = props ? props.mapDisplayData : this.props.mapDisplayData
-    const mapDisplayData = this.filterData(dataToFilter, node)
-    const mapRenderData = props ? props.mapRenderData : this.props.mapRenderData
-
-    const mapRenderDataTransformed = this.transformMapRenderData(mapRenderData)
-    const mapData = mapRenderDataTransformed.map(renderDataCountry => {
-      const displayDataIndex = mapDisplayData.findIndex(displayDataCountry => {
-        return renderDataCountry.id === displayDataCountry.id
+    //1.  Determine data source and filter/transform data as required
+    const whoData = props ? props.whoData : this.props.whoData//ternary operator: function called first time from componentWillRecieveProps 
+    const whoDataFiltered = this.filterData(whoData, node)    
+    const geoData = props ? props.geoData : this.props.geoData//ternary operator: function called first time from componentWillRecieveProps     
+    const geoDataTransformed = this.transformGeoData(geoData)
+    
+    //2.  Combine data
+    const mapData = geoDataTransformed.map(geoCountry => {
+      //a.  Find the country's WHO data
+      const whoDataIndex = whoDataFiltered.findIndex(displayDataCountry => {
+        return geoCountry.id === displayDataCountry.id
       })
-      if (displayDataIndex !== -1) {
-        renderDataCountry.displayDataValue = mapDisplayData[displayDataIndex].value
-        renderDataCountry.year = mapDisplayData[displayDataIndex].dims.YEAR
+      //add display data value and year to the geo data object 
+      if (whoDataIndex !== -1) {
+        geoCountry.displayDataValue = whoDataFiltered[whoDataIndex].value
+        geoCountry.year = whoDataFiltered[whoDataIndex].dims.YEAR
       } else {
-        renderDataCountry.displayDataValue = undefined
-        renderDataCountry.year = undefined
+        geoCountry.displayDataValue = undefined
+        geoCountry.year = undefined
       }
-      return renderDataCountry
+      //return the geo data object to the mapData array
+      return geoCountry
     })
+    //set the local state with the map data so we can render the map year
     this.setState({
       mapData: mapData
     })
   }
 
+  //runs the function when the store has updated with the data from various data sources
   componentWillReceiveProps(nextProps) {
     this.joinData(nextProps)
   }
@@ -98,8 +108,8 @@ class MapContainer extends Component {
 
 const mapStateToProps = state => {
   return {
-    mapRenderData: state.worldMapData,
-    mapDisplayData: state.maternalDeathData
+    geoData: state.worldMapData,
+    whoData: state.maternalDeathData
   }
 }
 
