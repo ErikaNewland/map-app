@@ -1,10 +1,10 @@
-#Map-App
+# Map-App
 
-##Overview
+## Overview
 This small project displays the relative maternal mortality rate in each country in each year for which data is tracked by the WHO.  
 
-##Technologies
+## Technologies
 React, D3
 
-##Data Sources
+## Data Sources
 World Health Organization
